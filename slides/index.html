@@ -9,55 +9,57 @@
         --amber: #f59e0b; --blue: #38bdf8; --purple: #a78bfa; --green: #4ade80; --teal: #2dd4bf; --pink: #f472b6; --red: #f87171;
     }
     * { box-sizing: border-box; }
+    /* Sized in rem rather than vh: vh ignores the browser zoom, --zoom does not. */
+    html { font-size: calc(var(--zoom, 1) * 1vh); }
     html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
-    section { position: absolute; inset: 0; padding: 4.5vh 6vw; display: none; flex-direction: column; justify-content: center; font-size: 2.8vh; }
+    section { position: absolute; inset: 0; padding: 4.5rem 6vw; display: none; flex-direction: column; justify-content: safe center; overflow: auto; font-size: 2.8rem; }
     section.active { display: flex; }
-    h1 { font-size: 9vh; margin: 0 0 2vh; color: var(--amber); }
-    h2 { font-size: 4.6vh; margin: 0 0 3vh; color: var(--amber); }
-    h2 .n { display: inline-flex; align-items: center; justify-content: center; width: 6vh; height: 6vh; border-radius: 50%; background: var(--amber); color: var(--bg); margin-right: 1.5vh; font-size: 3.4vh; }
-    h3 { color: var(--blue); margin: 2.5vh 0 1vh; font-size: 3vh; }
+    h1 { font-size: 9rem; margin: 0 0 2rem; color: var(--amber); }
+    h2 { font-size: 4.6rem; margin: 0 0 3rem; color: var(--amber); }
+    h2 .n { display: inline-flex; align-items: center; justify-content: center; width: 6rem; height: 6rem; border-radius: 50%; background: var(--amber); color: var(--bg); margin-right: 1.5rem; font-size: 3.4rem; }
+    h3 { color: var(--blue); margin: 2.5rem 0 1rem; font-size: 3rem; }
     li { line-height: 1.5; margin: .5em 0; }
     ul { margin: 0; padding-left: 1.2em; }
     li::marker { color: var(--amber); }
     code { font-variant-ligatures: none; font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace; color: var(--blue); }
-    pre { background: #020617; border: 1px solid var(--line); border-radius: 1vh; padding: 2vh 2.5vh; margin: 1vh 0; font-size: 2.1vh; line-height: 1.45; overflow: hidden; white-space: pre; }
+    pre { background: #020617; border: 1px solid var(--line); border-radius: 1rem; padding: 2rem 2.5rem; margin: 1rem 0; font-size: 2.1rem; line-height: 1.45; overflow: auto; white-space: pre; }
     pre code { color: var(--text); }
     .k { color: var(--pink); } .s { color: var(--green); } .c { color: var(--muted); font-style: italic; } .a { color: var(--amber); } .f { color: var(--blue); }
     .muted { color: var(--muted); }
-    .big { font-size: 3.4vh; }
+    .big { font-size: 3.4rem; }
     .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4vw; align-items: center; }
-    .cols pre { font-size: 1.75vh; padding: 1.8vh 2vh; }
+    .cols pre { font-size: 1.75rem; padding: 1.8rem 2rem; }
     .cols.wide-left { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
-    .tag { display: inline-block; padding: .5vh 1.6vh; margin: .6vh .3vh; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); font-size: 2.5vh; }
-    .when { border-left: .6vh solid var(--green); padding: 1vh 2vh; background: rgba(74, 222, 128, .08); margin-top: 2vh; border-radius: 0 1vh 1vh 0; }
+    .tag { display: inline-block; padding: .5rem 1.6rem; margin: .6rem .3rem; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); font-size: 2.5rem; }
+    .when { border-left: .6rem solid var(--green); padding: 1rem 2rem; background: rgba(74, 222, 128, .08); margin-top: 2rem; border-radius: 0 1rem 1rem 0; }
     .warn { border-left-color: var(--red); background: rgba(248, 113, 113, .08); }
-    table { border-collapse: collapse; width: 100%; font-size: 2.6vh; }
-    td, th { padding: 1.4vh 1.5vw; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+    table { border-collapse: collapse; width: 100%; font-size: 2.6rem; }
+    td, th { padding: 1.4rem 1.5vw; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
     th { color: var(--muted); font-weight: normal; }
-    .pill { display: inline-flex; align-items: center; justify-content: center; width: 3.6vh; height: 3.6vh; border-radius: 50%; color: var(--bg); font-weight: bold; margin-right: 1vh; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; width: 3.6rem; height: 3.6rem; border-radius: 50%; color: var(--bg); font-weight: bold; margin-right: 1rem; }
     .center { align-items: center; text-align: center; }
-    .center .sub { font-size: 3.6vh; color: var(--muted); }
-    .huge { font-size: 14vh; color: var(--amber); font-weight: 700; }
+    .center .sub { font-size: 3.6rem; color: var(--muted); }
+    .huge { font-size: 14rem; color: var(--amber); font-weight: 700; }
 
     /* Terminal */
-    .term { background: #020617; border: 1px solid var(--line); border-radius: 1vh; overflow: hidden; margin: 1vh 0; }
-    .term::before { content: "● ● ●"; display: block; padding: .8vh 1.5vh; background: var(--panel); color: var(--muted); font-size: 1.6vh; letter-spacing: .3vh; }
+    .term { background: #020617; border: 1px solid var(--line); border-radius: 1rem; overflow: hidden; margin: 1rem 0; }
+    .term::before { content: "● ● ●"; display: block; padding: .8rem 1.5rem; background: var(--panel); color: var(--muted); font-size: 1.6rem; letter-spacing: .3rem; }
     .term pre { border: 0; margin: 0; border-radius: 0; }
     .term .p { color: var(--green); user-select: none; }
     .term .o { color: var(--muted); }
 
-    .files { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vw; margin-top: 2vh; }
-    .file { background: var(--panel); border: 2px solid var(--line); border-radius: 1.2vh; padding: 2.5vh 2vw; }
-    .file code { display: block; font-size: 2.6vh; margin-bottom: 1.5vh; }
-    .file ul { font-size: 2.4vh; }
+    .files { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vw; margin-top: 2rem; }
+    .file { background: var(--panel); border: 2px solid var(--line); border-radius: 1.2rem; padding: 2.5rem 2vw; }
+    .file code { display: block; font-size: 2.6rem; margin-bottom: 1.5rem; }
+    .file ul { font-size: 2.4rem; }
     .file.generated { border-style: dashed; }
 
-    .schema svg { width: 100%; height: auto; max-height: 82vh; }
-    .schema-small svg { width: 100%; height: auto; max-height: 70vh; }
+    .schema svg { width: 100%; height: auto; max-height: 82rem; }
+    .schema-small svg { width: 100%; height: auto; max-height: 70rem; }
     #progress { position: fixed; left: 0; bottom: 0; height: .5vh; background: var(--amber); transition: width .2s; }
     #counter { position: fixed; right: 2vw; bottom: 1.5vh; color: var(--muted); font-size: 1.8vh; }
     aside.notes { display: none; }
-    body.show-notes aside.notes { display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 30vh; overflow: auto; background: #020617ee; border-top: 2px solid var(--amber); padding: 2vh 6vw; font-size: 2.2vh; color: var(--muted); }
+    body.show-notes aside.notes { display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 30vh; overflow: auto; background: #020617ee; border-top: 2px solid var(--amber); padding: 2rem 6vw; font-size: 2.2rem; color: var(--muted); }
 
     /* Schema */
     svg text { font-family: system-ui, sans-serif; fill: var(--text); }
@@ -166,14 +168,14 @@
         <li>compose <b>généré</b></li>
         <li><b>tâches</b> prêtes à l'emploi</li>
     </ul>
-    <div class="term" style="margin-top: 4vh"><pre><code><span class="p">$</span> castor composer require castor-php/docker</code></pre></div>
+    <div class="term" style="margin-top: 4rem"><pre><code><span class="p">$</span> castor composer require castor-php/docker</code></pre></div>
 </section>
 
 <!-- Exemple -->
 <section>
     <h2>Un exemple</h2>
     <div class="cols" style="grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)">
-<pre style="font-size: 2.1vh"><code><span class="a">#[AsListener(RegisterServiceEvent::class)]</span>
+<pre style="font-size: 2.1rem"><code><span class="a">#[AsListener(RegisterServiceEvent::class)]</span>
 <span class="k">function</span> <span class="f">register_services</span>(RegisterServiceEvent $event): <span class="k">void</span>
 {
     $postgres = <span class="k">new</span> PostgresService();
@@ -220,7 +222,7 @@
     <p><span class="tag">PHP · Symfony</span><span class="tag">FrankenPHP · FPM</span><span class="tag">Node</span><span class="tag">Go</span><span class="tag">Rust</span><span class="tag">binaires</span><span class="tag">workers</span></p>
     <h3>Infrastructure</h3>
     <p><span class="tag">Postgres</span><span class="tag">MySQL</span><span class="tag">MariaDB</span><span class="tag">Redis</span><span class="tag">RabbitMQ</span><span class="tag">Elasticsearch</span><span class="tag">Meilisearch</span><span class="tag">ClickHouse</span><span class="tag">Mercure</span><span class="tag">Mailpit</span><span class="tag">S3 (RustFS)</span><span class="tag">redirection.io</span></p>
-    <div class="cols" style="margin-top: 2vh">
+    <div class="cols" style="margin-top: 2rem">
         <div>
             <h3>Installer</h3>
             <div class="term"><pre><code><span class="p">$</span> castor docker:service:install symfony</code></pre></div>
@@ -275,7 +277,7 @@
 
 <span class="p">$</span> castor docker:router:status
 <span class="p">$</span> castor docker:router:logs --follow</code></pre></div>
-            <div class="term" style="margin-top: 3vh"><pre><code><span class="p">$</span> castor about
+            <div class="term" style="margin-top: 3rem"><pre><code><span class="p">$</span> castor about
 <span class="o">
   Service         URL                         Status
  --------------- --------------------------- ---------
@@ -385,7 +387,7 @@ $event->addService(
             </ul>
         </div>
     </div>
-<pre style="margin-top: 4vh"><code><span class="c"># compose.yaml</span>
+<pre style="margin-top: 4rem"><code><span class="c"># compose.yaml</span>
 include:
    - path:
          - compose.generated.yaml
@@ -599,6 +601,32 @@ services:
     });
     document.addEventListener('click', e => show(current + (e.clientX > innerWidth / 3 ? 1 : -1)));
 
+    // Ctrl +/-/0 and Ctrl + wheel (trackpad pinch) drive --zoom instead of the browser zoom, which vh-sized slides would cancel out.
+    let zoom = parseFloat(localStorage.getItem('slides-zoom')) || 1;
+
+    function setZoom(value) {
+        zoom = Math.min(3, Math.max(0.5, Math.round(value * 10) / 10));
+        document.documentElement.style.setProperty('--zoom', zoom);
+        localStorage.setItem('slides-zoom', zoom);
+    }
+
+    document.addEventListener('keydown', e => {
+        if (!e.ctrlKey && !e.metaKey) return;
+        if (['+', '='].includes(e.key)) setZoom(zoom + 0.1);
+        else if (e.key === '-') setZoom(zoom - 0.1);
+        else if (e.key === '0') setZoom(1);
+        else return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+    }, { capture: true });
+
+    document.addEventListener('wheel', e => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        setZoom(zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1));
+    }, { passive: false });
+
+    setZoom(zoom);
     show(parseInt(location.hash.slice(1) || '1', 10) - 1);
 </script>
 </body>
