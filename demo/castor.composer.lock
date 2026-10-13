@@ -1,0 +1,81 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "49c566d1c3ff522d655f3f156092f149",
+    "packages": [
+        {
+            "name": "castor-php/docker",
+            "version": "dev-feat/parallel-build-output",
+            "dist": {
+                "type": "path",
+                "url": "../../docker",
+                "reference": "8adda745a7eed27add5f9b19c6704f876088cf4a"
+            },
+            "require": {
+                "nikic/php-parser": "^5.3",
+                "php": ">=8.3"
+            },
+            "require-dev": {
+                "jolicode/castor": "^1.7",
+                "phpunit/phpunit": "^13.2",
+                "twig/twig": "^3.28"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Castor\\Docker\\": "src/"
+                },
+                "files": [
+                    "src/functions.php",
+                    "src/router.php",
+                    "src/tasks.php",
+                    "src/tunnel.php",
+                    "src/worktree.php",
+                    "src/database.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Castor\\Docker\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Joel Wurtz",
+                    "email": "jwurtz@jolicode.com"
+                }
+            ],
+            "description": "Castor plugin for docker",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
+            "name": "nikic/php-parser",
+            "version": "v5.9.0",
+            "type": "metapackage",
+            "extra": {
+                "castor": {
+                    "bundled": true
+                }
+            }
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "castor-php/docker": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

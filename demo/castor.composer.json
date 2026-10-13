@@ -1,0 +1,13 @@
+{
+    "name": "castor-php/docker-pres-demo",
+    "type": "project",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../docker"
+        }
+    ],
+    "require": {
+        "castor-php/docker": "@dev"
+    }
+}

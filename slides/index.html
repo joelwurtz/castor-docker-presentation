@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Castor Docker</title>
+<style>
+    :root {
+        --bg: #0f172a; --panel: #1e293b; --line: #334155; --text: #e2e8f0; --muted: #94a3b8;
+        --amber: #f59e0b; --blue: #38bdf8; --purple: #a78bfa; --green: #4ade80; --teal: #2dd4bf; --pink: #f472b6; --red: #f87171;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+    section { position: absolute; inset: 0; padding: 4.5vh 6vw; display: none; flex-direction: column; justify-content: center; font-size: 2.8vh; }
+    section.active { display: flex; }
+    h1 { font-size: 9vh; margin: 0 0 2vh; color: var(--amber); }
+    h2 { font-size: 4.6vh; margin: 0 0 3vh; color: var(--amber); }
+    h2 .n { display: inline-flex; align-items: center; justify-content: center; width: 6vh; height: 6vh; border-radius: 50%; background: var(--amber); color: var(--bg); margin-right: 1.5vh; font-size: 3.4vh; }
+    h3 { color: var(--blue); margin: 2.5vh 0 1vh; font-size: 3vh; }
+    li { line-height: 1.5; margin: .5em 0; }
+    ul { margin: 0; padding-left: 1.2em; }
+    li::marker { color: var(--amber); }
+    code { font-variant-ligatures: none; font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace; color: var(--blue); }
+    pre { background: #020617; border: 1px solid var(--line); border-radius: 1vh; padding: 2vh 2.5vh; margin: 1vh 0; font-size: 2.1vh; line-height: 1.45; overflow: hidden; white-space: pre; }
+    pre code { color: var(--text); }
+    .k { color: var(--pink); } .s { color: var(--green); } .c { color: var(--muted); font-style: italic; } .a { color: var(--amber); } .f { color: var(--blue); }
+    .muted { color: var(--muted); }
+    .big { font-size: 3.4vh; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4vw; align-items: center; }
+    .cols pre { font-size: 1.75vh; padding: 1.8vh 2vh; }
+    .cols.wide-left { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .tag { display: inline-block; padding: .5vh 1.6vh; margin: .6vh .3vh; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); font-size: 2.5vh; }
+    .when { border-left: .6vh solid var(--green); padding: 1vh 2vh; background: rgba(74, 222, 128, .08); margin-top: 2vh; border-radius: 0 1vh 1vh 0; }
+    .warn { border-left-color: var(--red); background: rgba(248, 113, 113, .08); }
+    table { border-collapse: collapse; width: 100%; font-size: 2.6vh; }
+    td, th { padding: 1.4vh 1.5vw; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+    th { color: var(--muted); font-weight: normal; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; width: 3.6vh; height: 3.6vh; border-radius: 50%; color: var(--bg); font-weight: bold; margin-right: 1vh; }
+    .center { align-items: center; text-align: center; }
+    .center .sub { font-size: 3.6vh; color: var(--muted); }
+    .huge { font-size: 14vh; color: var(--amber); font-weight: 700; }
+
+    /* Terminal */
+    .term { background: #020617; border: 1px solid var(--line); border-radius: 1vh; overflow: hidden; margin: 1vh 0; }
+    .term::before { content: "● ● ●"; display: block; padding: .8vh 1.5vh; background: var(--panel); color: var(--muted); font-size: 1.6vh; letter-spacing: .3vh; }
+    .term pre { border: 0; margin: 0; border-radius: 0; }
+    .term .p { color: var(--green); user-select: none; }
+    .term .o { color: var(--muted); }
+
+    .files { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vw; margin-top: 2vh; }
+    .file { background: var(--panel); border: 2px solid var(--line); border-radius: 1.2vh; padding: 2.5vh 2vw; }
+    .file code { display: block; font-size: 2.6vh; margin-bottom: 1.5vh; }
+    .file ul { font-size: 2.4vh; }
+    .file.generated { border-style: dashed; }
+
+    .schema svg { width: 100%; height: auto; max-height: 82vh; }
+    .schema-small svg { width: 100%; height: auto; max-height: 70vh; }
+    #progress { position: fixed; left: 0; bottom: 0; height: .5vh; background: var(--amber); transition: width .2s; }
+    #counter { position: fixed; right: 2vw; bottom: 1.5vh; color: var(--muted); font-size: 1.8vh; }
+    aside.notes { display: none; }
+    body.show-notes aside.notes { display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 30vh; overflow: auto; background: #020617ee; border-top: 2px solid var(--amber); padding: 2vh 6vw; font-size: 2.2vh; color: var(--muted); }
+
+    /* Schema */
+    svg text { font-family: system-ui, sans-serif; fill: var(--text); }
+    svg .box rect { stroke-width: 3; }
+    svg .lbl { font-size: 24px; font-weight: 600; }
+    svg .mono { font-family: ui-monospace, monospace; font-size: 20px; font-weight: 600; fill: var(--text); }
+    svg .hint { font-size: 17px; fill: var(--muted); font-style: italic; }
+    svg .num { font-size: 20px; font-weight: 700; fill: var(--bg); }
+    svg .arrow { stroke: var(--muted); stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+    svg .arrow.faint { stroke-dasharray: 6 5; }
+    svg .group-frame { fill: rgba(245, 158, 11, .03); stroke: var(--amber); stroke-width: 2; stroke-dasharray: 10 6; }
+    svg .group-title { font-size: 20px; fill: var(--amber); font-family: ui-monospace, monospace; font-weight: 600; }
+    svg [data-point] { transition: opacity .2s; }
+    svg [data-point="4"] { opacity: .55; }
+    svg [data-point="5"] { opacity: .4; }
+    svg .last-resort rect { stroke-dasharray: 8 6; }
+    .focus svg [data-point] { opacity: .15; }
+    .focus svg [data-point].on { opacity: 1; }
+    .focus svg [data-point].on rect { stroke-width: 6; }
+</style>
+</head>
+<body>
+
+<template id="schema-template">
+<svg viewBox="0 0 1200 680" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#94a3b8"/></marker>
+    </defs>
+
+    <rect class="group-frame" x="10" y="10" width="830" height="660" rx="16"/>
+    <text class="group-title" x="32" y="42">castor.php</text>
+
+    <g class="box" data-point="1">
+        <rect x="40" y="70" width="270" height="80" rx="12" fill="#2a1f0a" stroke="#f59e0b"/>
+        <circle cx="78" cy="110" r="20" fill="#f59e0b"/><text class="num" x="78" y="117" text-anchor="middle">1</text>
+        <text class="lbl" x="112" y="118">Contexte</text>
+    </g>
+
+    <g class="box" data-point="7">
+        <rect x="540" y="70" width="270" height="80" rx="12" fill="#2a0f22" stroke="#f472b6"/>
+        <circle cx="578" cy="110" r="20" fill="#f472b6"/><text class="num" x="578" y="117" text-anchor="middle">7</text>
+        <text class="lbl" x="612" y="118">Service maison</text>
+    </g>
+
+    <g class="box" data-point="2">
+        <rect x="225" y="220" width="400" height="100" rx="12" fill="#0b2233" stroke="#38bdf8"/>
+        <circle cx="265" cy="270" r="20" fill="#38bdf8"/><text class="num" x="265" y="277" text-anchor="middle">2</text>
+        <text class="lbl" x="300" y="278">Services</text>
+    </g>
+
+    <path class="arrow" d="M 175 152 L 175 185 L 330 185 L 330 218"/>
+    <path class="arrow" d="M 675 152 L 675 185 L 520 185 L 520 218"/>
+
+    <path class="arrow faint" d="M 425 322 L 425 388"/>
+
+    <g class="box last-resort" data-point="4">
+        <rect x="225" y="390" width="400" height="80" rx="12" fill="#0d2617" stroke="#4ade80"/>
+        <circle cx="265" cy="430" r="20" fill="#4ade80"/><text class="num" x="265" y="437" text-anchor="middle">4</text>
+        <text class="lbl" x="300" y="438">ComposeBuilder</text>
+    </g>
+
+    <path class="arrow faint" d="M 425 472 L 425 528"/>
+
+    <g class="box last-resort" data-point="5">
+        <rect x="225" y="530" width="400" height="80" rx="12" fill="#0d2617" stroke="#4ade80"/>
+        <circle cx="265" cy="570" r="20" fill="#4ade80"/><text class="num" x="265" y="577" text-anchor="middle">5</text>
+        <text class="lbl" x="300" y="578">WriteEvent</text>
+    </g>
+
+    <text class="hint" x="205" y="490" text-anchor="end">events</text>
+    <text class="hint" x="205" y="514" text-anchor="end">dernier recours</text>
+
+    <g class="box" data-point="3">
+        <rect x="880" y="220" width="300" height="100" rx="12" fill="#1c1533" stroke="#a78bfa"/>
+        <circle cx="920" cy="270" r="20" fill="#a78bfa"/><text class="num" x="920" y="277" text-anchor="middle">3</text>
+        <text class="lbl" x="955" y="278">Dockerfile Twig</text>
+    </g>
+    <path class="arrow" d="M 627 270 L 878 270"/>
+
+    <g>
+        <rect x="880" y="390" width="300" height="80" rx="12" fill="#1e293b" stroke="#64748b" stroke-dasharray="6 4" stroke-width="2"/>
+        <text class="mono" x="1030" y="437" text-anchor="middle">compose.generated.yaml</text>
+    </g>
+    <path class="arrow" d="M 627 570 L 740 570 L 740 430 L 878 430"/>
+
+    <g class="box" data-point="6">
+        <rect x="880" y="530" width="300" height="80" rx="12" fill="#082a27" stroke="#2dd4bf"/>
+        <circle cx="915" cy="570" r="20" fill="#2dd4bf"/><text class="num" x="915" y="577" text-anchor="middle">6</text>
+        <text class="mono" x="945" y="577">compose.override</text>
+    </g>
+    <path class="arrow" d="M 1030 472 L 1030 528"/>
+</svg>
+</template>
+
+<!-- Titre -->
+<section class="center">
+    <h1>Castor Docker</h1>
+    <p class="sub">Décrire sa stack Docker avec Castor</p>
+</section>
+
+<!-- Plugin -->
+<section>
+    <h2>Un plugin Castor</h2>
+    <ul class="big">
+        <li>stack décrite en <b>PHP</b></li>
+        <li>compose <b>généré</b></li>
+        <li><b>tâches</b> prêtes à l'emploi</li>
+    </ul>
+    <div class="term" style="margin-top: 4vh"><pre><code><span class="p">$</span> castor composer require castor-php/docker</code></pre></div>
+</section>
+
+<!-- Exemple -->
+<section>
+    <h2>Un exemple</h2>
+    <div class="cols" style="grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr)">
+<pre style="font-size: 2.1vh"><code><span class="a">#[AsListener(RegisterServiceEvent::class)]</span>
+<span class="k">function</span> <span class="f">register_services</span>(RegisterServiceEvent $event): <span class="k">void</span>
+{
+    $postgres = <span class="k">new</span> PostgresService();
+    $event->addService($postgres);
+
+    $event->addService(
+        (<span class="k">new</span> PHPService(<span class="s">'app'</span>))
+            ->withDirectory(__DIR__)
+            ->withDomain(<span class="s">'app.demo.test'</span>)
+            ->link($postgres)
+    );
+}</code></pre>
+        <div>
+            <p class="big">Ce que tu obtiens</p>
+            <ul class="big">
+                <li>PHP + Postgres</li>
+                <li>application déjà configurée</li>
+                <li><code>https://app.demo.test</code></li>
+                <li>tâches prêtes</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Commandes -->
+<section>
+    <h2>Les commandes</h2>
+    <div class="term"><pre><code><span class="p">$</span> castor up              <span class="c"># build si besoin + démarre</span>
+<span class="p">$</span> castor build
+<span class="p">$</span> castor stop
+<span class="p">$</span> castor logs app
+<span class="p">$</span> castor about           <span class="c"># les URLs du projet</span>
+
+<span class="p">$</span> castor app:bash
+<span class="p">$</span> castor app:composer require symfony/uid
+<span class="p">$</span> castor postgres:client
+<span class="p">$</span> castor postgres:dump backup.sql.gz</code></pre></div>
+</section>
+
+<!-- Services -->
+<section>
+    <h2>Les services</h2>
+    <h3>Applications</h3>
+    <p><span class="tag">PHP · Symfony</span><span class="tag">FrankenPHP · FPM</span><span class="tag">Node</span><span class="tag">Go</span><span class="tag">Rust</span><span class="tag">binaires</span><span class="tag">workers</span></p>
+    <h3>Infrastructure</h3>
+    <p><span class="tag">Postgres</span><span class="tag">MySQL</span><span class="tag">MariaDB</span><span class="tag">Redis</span><span class="tag">RabbitMQ</span><span class="tag">Elasticsearch</span><span class="tag">Meilisearch</span><span class="tag">ClickHouse</span><span class="tag">Mercure</span><span class="tag">Mailpit</span><span class="tag">S3 (RustFS)</span><span class="tag">redirection.io</span></p>
+    <div class="cols" style="margin-top: 2vh">
+        <div>
+            <h3>Installer</h3>
+            <div class="term"><pre><code><span class="p">$</span> castor docker:service:install symfony</code></pre></div>
+        </div>
+        <div>
+            <h3>Exposer sur l'hôte</h3>
+            <div class="term"><pre><code><span class="p">$</span> castor postgres:expose 15432
+<span class="p">$</span> castor postgres:expose --stop</code></pre></div>
+        </div>
+    </div>
+    <aside class="notes">expose : forwarder TCP pour DataGrip, TablePlus…, restauré au prochain up. Deux instances possibles avec withName() → deux jeux de tâches.</aside>
+</section>
+
+<!-- Tâches -->
+<section>
+    <h2>Les tâches générées</h2>
+    <div class="cols">
+        <ul class="big">
+            <li>une série de tâches <b>par service</b></li>
+            <li><code>{service}:{tâche}</code></li>
+            <li>2 instances → 2 séries de tâches</li>
+            <li>mêmes noms partout : <code>client</code>, <code>dump</code>, <code>expose</code></li>
+        </ul>
+        <div class="term"><pre><code><span class="p">$</span> castor list
+<span class="o"> app
+  app:bash         app:composer
+  app:install      app:qa:phpstan
+  app:qa:cs        app:qa:rector
+ postgres
+  postgres:client  postgres:dump
+  postgres:restore postgres:expose
+ redis
+  redis:expose</span></code></pre></div>
+    </div>
+</section>
+
+<!-- Router -->
+<section>
+    <h2>Router global &amp; HTTPS</h2>
+    <div class="cols">
+        <div>
+            <ul class="big">
+                <li><b>1 Caddy</b> pour toute la machine</li>
+                <li>projets côte à côte</li>
+                <li>HTTPS mkcert</li>
+                <li>démarre / s'arrête tout seul</li>
+            </ul>
+        </div>
+        <div>
+            <div class="term"><pre><code><span class="c"># optionnel · global à la machine · auto par défaut</span>
+<span class="p">$</span> castor docker:router:enable
+
+<span class="p">$</span> castor docker:router:status
+<span class="p">$</span> castor docker:router:logs --follow</code></pre></div>
+            <div class="term" style="margin-top: 3vh"><pre><code><span class="p">$</span> castor about
+<span class="o">
+  Service         URL                         Status
+ --------------- --------------------------- ---------
+  adminer         https://adminer.demo.test   running
+  app             https://app.demo.test       running
+  redis-insight   https://redis.demo.test     running</span></code></pre></div>
+        </div>
+    </div>
+</section>
+
+<!-- Monorepo -->
+<section>
+    <h2>Monorepo friendly</h2>
+    <div class="cols">
+        <ul class="big">
+            <li>1 répertoire = 1 service</li>
+            <li>N langages : PHP, Node, Go, Rust</li>
+            <li>apps qui s'appellent par leurs vrais domaines</li>
+            <li class="muted">builder PHP partagé ?</li>
+        </ul>
+<pre><code>$event->addService(
+    (<span class="k">new</span> SymfonyService(<span class="s">'api'</span>))
+        ->withDirectory(__DIR__ . <span class="s">'/api'</span>)
+        ->withDomain(<span class="s">'api.demo.test'</span>)
+);
+
+$event->addService(
+    (<span class="k">new</span> SymfonyService(<span class="s">'admin'</span>))
+        ->withDirectory(__DIR__ . <span class="s">'/admin'</span>)
+        ->withDomain(<span class="s">'admin.demo.test'</span>)
+);
+
+$event->addService(
+    (<span class="k">new</span> NodeService(<span class="s">'front'</span>))
+        ->withDirectory(__DIR__ . <span class="s">'/front'</span>)
+        ->withDomain(<span class="s">'demo.test'</span>)
+        ->withEnvironment(<span class="s">'API_URL'</span>, <span class="s">'https://api.demo.test'</span>)
+);</code></pre>
+    </div>
+</section>
+
+<!-- Worktrees -->
+<section>
+    <h2>Worktree git friendly</h2>
+    <div class="cols">
+        <ul class="big">
+            <li>1 worktree = <b>1 stack</b></li>
+            <li>domaines préfixés : <code>feature-x.demo.test</code></li>
+            <li>caches partagés</li>
+            <li>zéro configuration</li>
+        </ul>
+        <div class="term"><pre><code><span class="p">$</span> castor worktree:create feature-x --start --copy-data
+<span class="p">$</span> castor worktree:list
+<span class="p">$</span> castor app:bash --worktree=feature-x
+<span class="p">$</span> castor worktree:delete feature-x</code></pre></div>
+    </div>
+</section>
+
+<!-- Doctor / stats -->
+<section>
+    <h2>Doctor &amp; stats</h2>
+    <div class="cols">
+        <div>
+            <div class="term"><pre><code><span class="p">$</span> castor doctor
+<span class="o">  ✔   Port 80    Held by the router.
+  ✘   Port 443   Held by nginx (pid 812)
+                 → Stop nginx (pid 812).</span></code></pre></div>
+            <p class="muted">ports · DNS · certificats · droits · router</p>
+        </div>
+        <div>
+            <div class="term"><pre><code><span class="p">$</span> castor stats
+<span class="o">  Service    CPU     Memory    Mem %
+  app        0.00%   172.7MB   0.17%
+  postgres   0.00%   27.8MB    10.36%
+  redis      1.83%   12.3MB    0.01%</span></code></pre></div>
+            <p class="muted">CPU · RAM · disque exclusif du projet</p>
+        </div>
+    </div>
+</section>
+
+<!-- 3 fichiers -->
+<section>
+    <h2>3 fichiers compose</h2>
+    <div class="files">
+        <div class="file">
+            <code>compose.yaml</code>
+            <ul>
+                <li>point d'entrée</li>
+                <li>créé une fois</li>
+                <li><b>à toi</b></li>
+            </ul>
+        </div>
+        <div class="file generated">
+            <code>compose.generated.yaml</code>
+            <ul>
+                <li>généré depuis <code>castor.php</code></li>
+                <li>à chaque run</li>
+                <li><b>ne pas éditer</b></li>
+            </ul>
+        </div>
+        <div class="file">
+            <code>compose.override.yaml</code>
+            <ul>
+                <li>surcharges locales</li>
+                <li>jamais touché</li>
+                <li><b>à toi</b></li>
+            </ul>
+        </div>
+    </div>
+<pre style="margin-top: 4vh"><code><span class="c"># compose.yaml</span>
+include:
+   - path:
+         - compose.generated.yaml
+         - compose.override.yaml</code></pre>
+</section>
+
+<!-- Schéma -->
+<section>
+    <h2>Où personnaliser ?</h2>
+    <div class="schema" data-schema></div>
+    <aside class="notes">Le contexte et les services maison alimentent les services ; ensuite la chaîne d'events, en dernier recours. Prendre le niveau le plus haut possible.</aside>
+</section>
+
+<!-- 1 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">1</span>Le contexte</h2>
+<pre><code><span class="a">#[AsContext(default: true)]</span>
+<span class="k">function</span> <span class="f">default_context</span>(): Context
+{
+    <span class="k">return new</span> Context([
+        <span class="s">'root_domain'</span>    => <span class="s">'demo.test'</span>,
+        <span class="s">'registry'</span>       => <span class="s">'ghcr.io/org/demo'</span>,
+        <span class="s">'build_parallel'</span> => <span class="k">true</span>,
+        <span class="s">'docker_profiles'</span> => [<span class="s">'default'</span>],
+    ]);
+}</code></pre>
+            <div class="when">Global au projet : domaine racine, registry, nom du projet, router, worktrees…</div>
+        </div>
+        <div class="schema-small focus" data-schema="1"></div>
+    </div>
+</section>
+
+<!-- 2 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">2</span>Les services</h2>
+<pre><code><span class="a">#[AsListener(RegisterServiceEvent::class)]</span>
+<span class="k">function</span> <span class="f">register_services</span>(RegisterServiceEvent $event): <span class="k">void</span>
+{
+    $event->addService(<span class="k">new</span> RedisService());
+
+    $event->addService(
+        (<span class="k">new</span> PHPService(<span class="s">'app'</span>))
+            ->withDomain(<span class="s">'app.demo.test'</span>)
+            ->addExtension(<span class="s">'redis'</span>)
+            ->withPhpIni([<span class="s">'memory_limit'</span> => <span class="s">'1G'</span>])
+    );
+}</code></pre>
+            <div class="when">90 % des besoins · API fluide <code>with*()</code> · ordre des appels libre</div>
+        </div>
+        <div class="schema-small focus" data-schema="2"></div>
+    </div>
+</section>
+
+<!-- 3 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">3</span>Le Dockerfile Twig</h2>
+<pre><code><span class="c"># syntax=ghcr.io/castor-php/twig-dockerfile:0.1</span>
+<span class="k">{% extends</span> <span class="s">'Dockerfile.frankenphp'</span> <span class="k">%}</span>
+
+<span class="k">{% block</span> php_base <span class="k">%}</span>
+    <span class="a">{{ parent() }}</span>
+RUN apt-get update && apt-get install -y figlet
+<span class="k">{% endblock %}</span></code></pre>
+<pre><code>->withDockerfile(__DIR__ . <span class="s">'/Dockerfile'</span>)</code></pre>
+            <div class="when">L'image : paquet système, outil, conf nginx / Caddy · blocs <code>php_base</code> · <code>frontend</code> · <code>worker</code> · <code>builder</code> · on surcharge, on ne copie pas</div>
+        </div>
+        <div class="schema-small focus" data-schema="3"></div>
+    </div>
+</section>
+
+<!-- 4 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">4</span>Le ComposeBuilder</h2>
+<pre><code><span class="a">#[AsDockerComposeBuilder]</span>
+<span class="k">function</span> <span class="f">add_adminer</span>(ComposeBuilder $builder, Context $ctx): <span class="k">void</span>
+{
+    $builder
+        ->service(<span class="s">'adminer'</span>)
+            ->image(<span class="s">'adminer:5'</span>)
+            ->withHttpRouting(<span class="s">'adminer.'</span> . $ctx[<span class="s">'root_domain'</span>], 8080)
+            ->profile(<span class="s">'default'</span>)
+        ->end();
+}</code></pre>
+            <div class="when">Service spécifique au projet · non réutilisable · modifier un service existant · <code>DockerComposeBuilderEvent</code> pour l'ordre</div>
+        </div>
+        <div class="schema-small focus" data-schema="4"></div>
+    </div>
+</section>
+
+<!-- 5 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">5</span>DockerComposeWriteEvent</h2>
+<pre><code><span class="a">#[AsListener(DockerComposeWriteEvent::class)]</span>
+<span class="k">function</span> <span class="f">limit_postgres_memory</span>(
+    DockerComposeWriteEvent $event,
+): <span class="k">void</span>
+{
+    $event->compose[<span class="s">'services'</span>][<span class="s">'postgres'</span>]
+        [<span class="s">'deploy'</span>][<span class="s">'resources'</span>][<span class="s">'limits'</span>][<span class="s">'memory'</span>] = <span class="s">'256m'</span>;
+}</code></pre>
+            <div class="when">Trappe de secours · tableau brut · <code>deploy</code>, <code>logging</code>, <code>secrets</code>, <code>x-*</code></div>
+            <div class="when warn">Rien de validé · l'erreur sort côté <code>docker compose</code></div>
+        </div>
+        <div class="schema-small focus" data-schema="5"></div>
+    </div>
+</section>
+
+<!-- 6 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">6</span>compose.override.yaml</h2>
+<pre><code><span class="c"># compose.override.yaml — jamais touché par le plugin</span>
+services:
+    app:
+        environment:
+            - XDEBUG_MODE=debug
+        build:
+            args:
+                with_blackfire: <span class="s">'true'</span>   <span class="c"># variable Twig</span>
+            additional_contexts:
+                project: .               <span class="c"># @project/ dans Twig</span></code></pre>
+            <div class="when">Local · ad hoc · env, <code>extra_hosts</code>, build args · services en plus dans <code>compose.yaml</code></div>
+        </div>
+        <div class="schema-small focus" data-schema="6"></div>
+    </div>
+</section>
+
+<!-- 7 -->
+<section>
+    <div class="cols wide-left">
+        <div>
+            <h2><span class="n">7</span>Service maison</h2>
+<pre><code><span class="k">class</span> <span class="f">MinioService</span>
+    <span class="k">implements</span> ServiceInterface, LinkableServiceInterface
+{
+    <span class="k">use</span> HasName, HasVersion, HasHttpRouting;
+
+    <span class="k">public function</span> <span class="f">updateCompose</span>(…): ComposeBuilder { … }
+    <span class="k">public function</span> <span class="f">getTasks</span>(): iterable { … } <span class="c">// minio:client</span>
+    <span class="k">public function</span> <span class="f">getLinkEnvironment</span>(Context $c): array { … }
+}</code></pre>
+            <div class="when">Réutilisable entre projets · ses tâches · traits <code>Behaviour\*</code> · installer pour <code>docker:service:install</code></div>
+        </div>
+        <div class="schema-small focus" data-schema="7"></div>
+    </div>
+</section>
+
+<!-- Récap -->
+<section>
+    <h2>Je veux… → j'utilise</h2>
+    <table>
+        <tr><th>Je veux</th><th>Point</th></tr>
+        <tr><td>option globale au projet</td><td><span class="pill" style="background:var(--amber)">1</span>contexte</td></tr>
+        <tr><td>ajouter un service existant, le configurer</td><td><span class="pill" style="background:var(--blue)">2</span>services, <code>with*()</code></td></tr>
+        <tr><td>paquet ou outil dans l'image</td><td><span class="pill" style="background:var(--purple)">3</span>Dockerfile Twig</td></tr>
+        <tr><td>service spécifique au projet, non réutilisable<br><span class="muted">💬 même besoin : on garde lequel ?</span></td><td><span class="pill" style="background:var(--green)">4</span><code>#[AsDockerComposeBuilder]</code><br><span class="pill" style="background:var(--teal)">6</span><code>compose.yaml</code></td></tr>
+        <tr><td>retoucher le compose généré<br><span class="muted">💬 même besoin : on garde lequel ?</span></td><td><span class="pill" style="background:var(--green)">5</span><code>DockerComposeWriteEvent</code><br><span class="pill" style="background:var(--teal)">6</span><code>compose.override.yaml</code></td></tr>
+        <tr><td>service réutilisable avec ses tâches</td><td><span class="pill" style="background:var(--pink)">7</span><code>ServiceInterface</code></td></tr>
+    </table>
+</section>
+
+<!-- Démo -->
+<section class="center">
+    <div class="huge">Démo</div>
+</section>
+
+<div id="progress"></div>
+<div id="counter"></div>
+
+<script>
+    const template = document.getElementById('schema-template');
+    document.querySelectorAll('[data-schema]').forEach(el => {
+        el.appendChild(template.content.cloneNode(true));
+        const focus = el.dataset.schema;
+        if (focus) {
+            el.querySelectorAll(`[data-point="${focus}"]`).forEach(g => g.classList.add('on'));
+        }
+    });
+
+    const slides = [...document.querySelectorAll('section')];
+    let current = 0;
+
+    function show(index) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((s, i) => s.classList.toggle('active', i === current));
+        document.getElementById('progress').style.width = `${(current + 1) / slides.length * 100}%`;
+        document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${current + 1}`);
+    }
+
+    document.addEventListener('keydown', e => {
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) show(current + 1);
+        else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) show(current - 1);
+        else if (e.key === 'Home') show(0);
+        else if (e.key === 'End') show(slides.length - 1);
+        else if (e.key === 'n') document.body.classList.toggle('show-notes');
+        else if (e.key === 'f') document.documentElement.requestFullscreen?.();
+        else return;
+        e.preventDefault();
+    });
+    document.addEventListener('click', e => show(current + (e.clientX > innerWidth / 3 ? 1 : -1)));
+
+    show(parseInt(location.hash.slice(1) || '1', 10) - 1);
+</script>
+</body>
+</html>
